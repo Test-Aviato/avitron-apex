@@ -54,7 +54,7 @@ module "automation-project" {
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
-    ]    
+    ]
     "roles/cloudbuild.builds.editor" = [
       module.automation-tf-resman-sa.iam_email
     ]
