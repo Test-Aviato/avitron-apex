@@ -54,6 +54,10 @@ module "log-export-project" {
     ? {}
     : { (var.essential_contacts) = ["ALL"] }
   )
+  iam = {
+    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
+  }
   services = [
     # "cloudresourcemanager.googleapis.com",
     # "iam.googleapis.com",
@@ -65,10 +69,6 @@ module "log-export-project" {
     "containerscanning.googleapis.com",
     "containeranalysis.googleapis.com",
   ]
-  iam = {
-    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
-    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
-  }
 }
 
 # one log export per type, with conditionals to skip those not needed
