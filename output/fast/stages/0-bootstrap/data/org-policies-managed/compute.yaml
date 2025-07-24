@@ -18,10 +18,6 @@
 
 # yaml-language-server: $schema=../../schemas/org-policies.schema.json
 
-compute.disableGuestAttributesAccess:
-  rules:
-    - enforce: true
-
 compute.disableInternetNetworkEndpointGroup:
   rules:
   - enforce: true
