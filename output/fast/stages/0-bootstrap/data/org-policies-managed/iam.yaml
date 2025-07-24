@@ -1,0 +1,17 @@
+iam.automaticIamGrantsForDefaultServiceAccounts:
+  rules:
+    - enforce: true
+
+iam.disableServiceAccountKeyCreation:
+  rules:
+    - enforce: true
+
+iam.disableServiceAccountKeyUpload:
+  rules:
+    - enforce: true
+
+iam.serviceAccountKeyExposureResponse:
+  rules:
+    - allow:
+        values:
+          - is:DISABLE_KEY
