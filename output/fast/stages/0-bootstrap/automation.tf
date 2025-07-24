@@ -54,7 +54,7 @@ module "automation-project" {
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
-    ]
+    ]    
     "roles/cloudbuild.builds.editor" = [
       module.automation-tf-resman-sa.iam_email
     ]
@@ -78,7 +78,6 @@ module "automation-project" {
       module.automation-tf-bootstrap-r-sa.iam_email,
       module.automation-tf-resman-r-sa.iam_email
     ]
-    "roles/containeranalysis.occurrences.viewer" = [module.automation-tf-bootstrap-sa.iam_email]
   }
   iam_bindings = {
     delegated_grants_resman = {
@@ -148,7 +147,6 @@ module "automation-project" {
       "contactcenterinsights.googleapis.com",
       "container.googleapis.com",
       "containeranalysis.googleapis.com",
-      "containerscanning.googleapis.com",
       "containerregistry.googleapis.com",
       "containerthreatdetection.googleapis.com",
       "datacatalog.googleapis.com",
@@ -209,12 +207,17 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
+      "containerscanning.googleapis.com",
+      "containeranalysis.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
       "cloudbuild.googleapis.com",
       "compute.googleapis.com",
       "container.googleapis.com",
+      "artifactregistry.googleapis.com",
+      "containerscanning.googleapis.com",
+      "containeranalysis.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
