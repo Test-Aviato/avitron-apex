@@ -54,7 +54,7 @@ module "automation-project" {
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
-    ]    
+    ]
     "roles/cloudbuild.builds.editor" = [
       module.automation-tf-resman-sa.iam_email
     ]
@@ -215,6 +215,8 @@ module "automation-project" {
       "cloudbuild.googleapis.com",
       "compute.googleapis.com",
       "container.googleapis.com",
+      "artifactregistry.googleapis.com",
+      "containerscanning.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
