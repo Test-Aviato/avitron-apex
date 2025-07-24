@@ -18,27 +18,11 @@
 
 # yaml-language-server: $schema=../../schemas/org-policies.schema.json
 
-iam.managed.allowedPolicyMembers:
+iam.automaticIamGrantsForDefaultServiceAccounts:
   rules:
-    - enforce: false
-      condition:
-        title: Allow any member domain
-        expression: |
-          resource.matchTag('${tags.org_policies_tag_name}', 'allowed-policy-member-domains-all')
-
     - enforce: true
-      parameters: >-
-        {
-          "allowedPrincipalSets": [
-             "//cloudresourcemanager.googleapis.com/organizations/${organization.id}"
-          ]
-        }
 
 iam.disableAuditLoggingExemption:
-  rules:
-    - enforce: true
-
-iam.managed.preventPrivilegedBasicRolesForDefaultServiceAccounts:
   rules:
     - enforce: true
 
