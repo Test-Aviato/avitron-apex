@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../schemas/custom-role.schema.json
+# this is needed for use in additive IAM bindings, to avoid conflicts
+
+name: organizationIamAdmin
+includedPermissions:
+  - resourcemanager.organizations.get
+  - resourcemanager.organizations.getIamPolicy
+  - resourcemanager.organizations.setIamPolicy
+  - containeranalysis.occurrences.list
+  - containerscanning.findings.list
+  - containerscanning.occurrences.list
