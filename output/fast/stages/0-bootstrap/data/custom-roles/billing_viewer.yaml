@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../schemas/custom-role.schema.json
+
+name: billingViewer
+includedPermissions:
+- billing.accounts.get
+- billing.accounts.getIamPolicy
+- billing.accounts.getSpendingInformation
+- billing.accounts.getUsageExportSpec
+- billing.accounts.list
+- billing.budgets.get
+- billing.budgets.list
+- billing.budgets.update
+- billing.credits.list
+- billing.resourceAssociations.list
+- recommender.costInsights.get
+- recommender.costInsights.list
