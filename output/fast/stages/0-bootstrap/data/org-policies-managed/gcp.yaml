@@ -1,0 +1,4 @@
+gcp.resourceLocations:
+  rules:
+  - allow:
+      all: true
