@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../schemas/custom-role.schema.json
+
+name: ngfwEnterpriseViewer
+includedPermissions:
+  - networksecurity.firewallEndpoints.get
+  - networksecurity.firewallEndpoints.list
+  - networksecurity.firewallEndpoints.use
+  - networksecurity.locations.get
+  - networksecurity.locations.list
+  - networksecurity.operations.get
+  - networksecurity.operations.list
+  - networksecurity.securityProfileGroups.get
+  - networksecurity.securityProfileGroups.list
+  - networksecurity.securityProfileGroups.use
+  - networksecurity.securityProfiles.get
+  - networksecurity.securityProfiles.list
+  - networksecurity.securityProfiles.use
+  - networksecurity.tlsInspectionPolicies.get
+  - networksecurity.tlsInspectionPolicies.list
+  - networksecurity.tlsInspectionPolicies.use
