@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../schemas/custom-role.schema.json
+
+name: networkFirewallPoliciesAdmin
+includedPermissions:
+  - compute.networks.setFirewallPolicy
+  - networksecurity.firewallEndpointAssociations.create
+  - networksecurity.firewallEndpointAssociations.delete
+  - networksecurity.firewallEndpointAssociations.get
+  - networksecurity.firewallEndpointAssociations.list
+  - networksecurity.firewallEndpointAssociations.update
