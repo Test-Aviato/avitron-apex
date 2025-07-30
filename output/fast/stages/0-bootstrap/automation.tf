@@ -158,6 +158,7 @@ module "automation-project" {
       "dlp.googleapis.com",
       "dns.googleapis.com",
       "documentai.googleapis.com",
+      "essentialcontacts.googleapis.com",
       "eventarc.googleapis.com",
       "file.googleapis.com",
       "gameservices.googleapis.com",
@@ -178,9 +179,7 @@ module "automation-project" {
       "networksecurity.googleapis.com",
       "networkservices.googleapis.com",
       "notebooks.googleapis.com",
-      "opsconfigmonitoring.googleapis.com",
-      "osconfig.googleapis.com",
-      "oslogin.googleapis.com",
+      "orgpolicy.googleapis.com",
       "privateca.googleapis.com",
       "pubsub.googleapis.com",
       "pubsublite.googleapis.com",
@@ -207,8 +206,6 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
-      "containeranalysis.googleapis.com",
-      "containerscanning.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
