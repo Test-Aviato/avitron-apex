@@ -54,6 +54,10 @@ module "log-export-project" {
     ? {}
     : { (var.essential_contacts) = ["ALL"] }
   )
+  iam = {
+    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
+  }
   services = [
     "accesscontextmanager.googleapis.com",
     "adsdatahub.googleapis.com",
@@ -119,31 +123,31 @@ module "log-export-project" {
     "privateca.googleapis.com",
     "pubsub.googleapis.com",
     "pubsublite.googleapis.com",
-      "recaptchaenterprise.googleapis.com",
-      "recommender.googleapis.com",
-      "redis.googleapis.com",
-      "run.googleapis.com",
-      "secretmanager.googleapis.com",
-      "servicecontrol.googleapis.com",
-      "servicedirectory.googleapis.com",
-      "spanner.googleapis.com",
-      "speakerid.googleapis.com",
-      "speech.googleapis.com",
-      "sqladmin.googleapis.com",
-      "storage-component.googleapis.com",
-      "storage.googleapis.com",
-      "storagetransfer.googleapis.com",
-      "sts.googleapis.com",
-      "texttospeech.googleapis.com",
-      "tpu.googleapis.com",
-      "trafficdirector.googleapis.com",
-      "transcoder.googleapis.com",
-      "translate.googleapis.com",
+    "recaptchaenterprise.googleapis.com",
+    "recommender.googleapis.com",
+    "redis.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "servicecontrol.googleapis.com",
+    "servicedirectory.googleapis.com",
+    "spanner.googleapis.com",
+    "speakerid.googleapis.com",
+    "speech.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com",
+    "storagetransfer.googleapis.com",
+    "sts.googleapis.com",
+    "texttospeech.googleapis.com",
+    "tpu.googleapis.com",
+    "trafficdirector.googleapis.com",
+    "transcoder.googleapis.com",
+    "translate.googleapis.com",
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
       "containerscanning.googleapis.com",
-  ]
+    ]
 }
 
 # one log export per type, with conditionals to skip those not needed
@@ -168,7 +172,7 @@ module "log-export-gcs" {
 
 module "log-export-logbucket" {
   source        = "../../../modules/logging-bucket"
-  for_each      = toset([for k, v in var.log_sinks : k if v.type == "logging"]])
+  for_each      = toset([for k, v in var.log_sinks : k if v.type == "logging"])
   parent_type   = "project"
   parent        = module.log-export-project.project_id
   id            = each.key
