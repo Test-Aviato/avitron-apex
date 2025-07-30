@@ -187,4 +187,204 @@ variable "iam_bindings_additive" {
 }
 
 variable "iam_by_principals" {
-  description = "Authoritative IAM binding in {PRINCIPAL => [ROLES]} format. Principals need to be statically defined to avoid cycle errors. Merged internally with the `iam` variable
+  description = "Authoritative IAM binding in {PRINCIPAL => [ROLES]} format. Principals need to be statically defined to avoid cycle errors. Merged internally with the `iam` variable."
+  type        = map(list(string))
+  default     = {}
+  nullable    = false
+}
+
+variable "locations" {
+  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
+  type = object({
+    bq      = optional(string, "EU")
+    gcs     = optional(string, "EU")
+    logging = optional(string, "global")
+    pubsub  = optional(list(string), [])
+  })
+  nullable = false
+  default  = {}
+}
+
+variable "log_sinks" {
+  description = "Org-level log sinks, in name => {type, filter} format."
+  type = map(object({
+    filter     = string
+    type       = string
+    disabled   = optional(bool, false)
+    exclusions = optional(map(string), {})
+  }))
+  nullable = false
+  default = {
+    audit-logs = {
+      # activity logs include Google Workspace / Cloud Identity logs
+      # exclude them via additional filter stanza if needed
+      filter = <<-FILTER
+        log_id("cloudaudit.googleapis.com/activity") OR
+        log_id("cloudaudit.googleapis.com/system_event") OR
+        log_id("cloudaudit.googleapis.com/policy") OR
+        log_id("cloudaudit.googleapis.com/access_transparency")
+      FILTER
+      type   = "logging"
+      # exclusions = {
+      #   gke-audit = "protoPayload.serviceName=\"k8s.io\""
+      # }
+    }
+    iam = {
+      filter = <<-FILTER
+        protoPayload.serviceName="iamcredentials.googleapis.com" OR
+        protoPayload.serviceName="iam.googleapis.com" OR
+        protoPayload.serviceName="sts.googleapis.com"
+      FILTER
+      type   = "logging"
+    }
+    vpc-sc = {
+      filter = <<-FILTER
+        protoPayload.metadata.@type="type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata"
+      FILTER
+      type   = "logging"
+    }
+    workspace-audit-logs = {
+      filter = <<-FILTER
+        protoPayload.serviceName="admin.googleapis.com" OR
+        protoPayload.serviceName="cloudidentity.googleapis.com" OR
+        protoPayload.serviceName="login.googleapis.com"
+      FILTER
+      type   = "logging"
+    }
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.log_sinks :
+      contains(["bigquery", "logging", "project", "pubsub", "storage"], v.type)
+    ])
+    error_message = "Type must be one of 'bigquery', 'logging', 'project', 'pubsub', 'storage'."
+  }
+}
+
+variable "org_policies_config" {
+  description = "Organization policies customization."
+  type = object({
+    iac_policy_member_domains = optional(list(string))
+    import_defaults           = optional(bool, false)
+    tag_name                  = optional(string, "org-policies")
+    tag_values = optional(map(object({
+      description = optional(string, "Managed by the Terraform organization module.")
+      iam         = optional(map(list(string)), {})
+      id          = optional(string)
+    })), {})
+  })
+  default = {}
+}
+
+variable "organization" {
+  description = "Organization details."
+  type = object({
+    id          = number
+    domain      = optional(string)
+    customer_id = optional(string)
+  })
+}
+
+variable "outputs_location" {
+  description = "Enable writing provider, tfvars and CI/CD workflow files to local filesystem. Leave null to disable."
+  type        = string
+  default     = null
+}
+
+variable "prefix" {
+  description = "Prefix used for resources that need unique names. Use 9 characters or less."
+  type        = string
+  validation {
+    condition     = try(length(var.prefix), 0) < 10
+    error_message = "Use a maximum of 9 characters for prefix."
+  }
+}
+
+variable "project_parent_ids" {
+  description = "Optional parents for projects created here in folders/nnnnnnn format. Null values will use the organization as parent."
+  type = object({
+    automation = optional(string)
+    billing    = optional(string)
+    logging    = optional(string)
+  })
+  default  = {}
+  nullable = false
+}
+
+variable "resource_names" {
+  description = "Resource names overrides for specific resources. Prefix is always set via code, except where noted in the variable type."
+  type = object({
+    bq-billing           = optional(string, "billing_export")
+    bq-logs              = optional(string, "logs")
+    gcs-bootstrap        = optional(string, "prod-iac-core-bootstrap-0")
+    gcs-logs             = optional(string, "prod-audit-logs-0")
+    gcs-outputs          = optional(string, "prod-iac-core-outputs-0")
+    gcs-resman           = optional(string, "prod-iac-core-resman-0")
+    gcs-vpcsc            = optional(string, "prod-iac-core-vpcsc-0")
+    project-automation   = optional(string, "prod-iac-core-0")
+    project-billing      = optional(string, "prod-billing-exp-0")
+    project-logs         = optional(string, "prod-audit-logs-0")
+    pubsub-logs_template = optional(string, "$${key}")
+    sa-bootstrap         = optional(string, "prod-bootstrap-0")
+    sa-bootstrap_ro      = optional(string, "prod-bootstrap-0r")
+    sa-cicd_template     = optional(string, "prod-$${key}-1")
+    sa-cicd_template_ro  = optional(string, "prod-$${key}-1r")
+    sa-resman            = optional(string, "prod-resman-0")
+    sa-resman_ro         = optional(string, "prod-resman-0r")
+    sa-vpcsc             = optional(string, "prod-vpcsc-0")
+    sa-vpcsc_ro          = optional(string, "prod-vpcsc-0r")
+    # the identity provider resources also interpolate prefix
+    wf-bootstrap          = optional(string, "$${prefix}-bootstrap")
+    wf-provider_template  = optional(string, "$${prefix}-bootstrap-$${key}")
+    wif-bootstrap         = optional(string, "$${prefix}-bootstrap")
+    wif-provider_template = optional(string, "$${prefix}-bootstrap-$${key}")
+  })
+  nullable = false
+  default  = {}
+}
+
+variable "universe" {
+  description = "Target GCP universe."
+  type = object({
+    domain               = string
+    prefix               = string
+    unavailable_services = optional(list(string), [])
+  })
+  default = null
+}
+
+variable "workforce_identity_providers" {
+  description = "Workforce Identity Federation pools."
+  type = map(object({
+    attribute_condition = optional(string)
+    issuer              = string
+    display_name        = string
+    description         = string
+    disabled            = optional(bool, false)
+    saml = optional(object({
+      idp_metadata_xml = string
+    }), null)
+  }))
+  default  = {}
+  nullable = false
+}
+
+variable "workload_identity_providers" {
+  description = "Workload Identity Federation pools. The `cicd_repositories` variable references keys here."
+  type = map(object({
+    attribute_condition = optional(string)
+    issuer              = string
+    custom_settings = optional(object({
+      issuer_uri = optional(string)
+      audiences  = optional(list(string), [])
+      jwks_json  = optional(string)
+    }), {})
+  }))
+  default  = {}
+  nullable = false
+  # TODO: fix validation
+  # validation {
+  #   condition     = var.federated_identity_providers.custom_settings == null
+  #   error_message = "Custom settings cannot be null."
+  # }
+}
