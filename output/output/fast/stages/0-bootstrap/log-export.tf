@@ -143,11 +143,12 @@ module "log-export-project" {
     "trafficdirector.googleapis.com",
     "transcoder.googleapis.com",
     "translate.googleapis.com",
-      "videointelligence.googleapis.com",
-      "vision.googleapis.com",
-      "vpcaccess.googleapis.com",
-      "containerscanning.googleapis.com",
-    ]
+    "videointelligence.googleapis.com",
+    "vision.googleapis.com",
+    "vpcaccess.googleapis.com",
+    "containerscanning.googleapis.com",
+    "containeranalysis.googleapis.com",
+  ]
 }
 
 # one log export per type, with conditionals to skip those not needed
