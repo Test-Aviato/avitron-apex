@@ -65,6 +65,7 @@ module "log-export-project" {
     "bigqueryreservation.googleapis.com",
     "bigquerystorage.googleapis.com",
     "bigtable.googleapis.com",
+    "binaryauthorization.googleapis.com",
     "cloudasset.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudfunctions.googleapis.com",
@@ -127,7 +128,6 @@ module "log-export-project" {
     "storage-component.googleapis.com",
     "storage.googleapis.com",
     "storagetransfer.googleapis.com",
-    "sts.googleapis.com",
     "texttospeech.googleapis.com",
     "tpu.googleapis.com",
     "trafficdirector.googleapis.com",
@@ -135,7 +135,6 @@ module "log-export-project" {
     "translate.googleapis.com",
     "videointelligence.googleapis.com",
     "vision.googleapis.com",
-    "vmwareengine.googleapis.com",
     "vpcaccess.googleapis.com",
     "containerscanning.googleapis.com",
   ]
