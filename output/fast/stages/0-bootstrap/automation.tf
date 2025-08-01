@@ -206,6 +206,7 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
+      "containerscanning.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
@@ -234,3 +235,4 @@ module "automation-project" {
     }
   }
 }
+
