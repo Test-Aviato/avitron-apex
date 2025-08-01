@@ -1,3 +1,19 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 variable "billing_account" {
   description = "Billing account id. If billing account is not part of the same org set `is_org_level` to `false`. To disable handling of billing IAM roles set `no_iam` to `true`."
   type = object({
@@ -319,56 +335,3 @@ variable "resource_names" {
     sa-vpcsc_ro          = optional(string, "prod-vpcsc-0r")
     # the identity provider resources also interpolate prefix
     wf-bootstrap          = optional(string, "$${prefix}-bootstrap")
-    wf-provider_template  = optional(string, "$${prefix}-bootstrap-$${key}")
-    wif-bootstrap         = optional(string, "$${prefix}-bootstrap")
-    wif-provider_template = optional(string, "$${prefix}-bootstrap-$${key}")
-  })
-  nullable = false
-  default  = {}
-}
-
-variable "universe" {
-  description = "Target GCP universe."
-  type = object({
-    domain               = string
-    prefix               = string
-    unavailable_services = optional(list(string), [])
-  })
-  default = null
-}
-
-variable "workforce_identity_providers" {
-  description = "Workforce Identity Federation pools."
-  type = map(object({
-    attribute_condition = optional(string)
-    issuer              = string
-    display_name        = string
-    description         = string
-    disabled            = optional(bool, false)
-    saml = optional(object({
-      idp_metadata_xml = string
-    }), null)
-  }))
-  default  = {}
-  nullable = false
-}
-
-variable "workload_identity_providers" {
-  description = "Workload Identity Federation pools. The `cicd_repositories` variable references keys here."
-  type = map(object({
-    attribute_condition = optional(string)
-    issuer              = string
-    custom_settings = optional(object({
-      issuer_uri = optional(string)
-      audiences  = optional(list(string), [])
-      jwks_json  = optional(string)
-    }), {})
-  }))
-  default  = {}
-  nullable = false
-  # TODO: fix validation
-  # validation {
-  #   condition     = var.federated_identity_providers.custom_settings == null
-  #   error_message = "Custom settings cannot be null."
-  # }
-}
