@@ -335,3 +335,13 @@ variable "resource_names" {
     sa-vpcsc_ro          = optional(string, "prod-vpcsc-0r")
     # the identity provider resources also interpolate prefix
     wf-bootstrap          = optional(string, "$${prefix}-bootstrap")
+    wf-provider_template  = optional(string, "$${prefix}-bootstrap-$${key}")
+    wif-bootstrap         = optional(string, "$${prefix}-bootstrap")
+    wif-provider_template = optional(string, "$${prefix}-bootstrap-$${key}")
+  })
+  nullable = false
+  default  = {}
+}
+
+variable "universe" {
+  
