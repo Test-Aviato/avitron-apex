@@ -146,8 +146,9 @@ module "log-export-project" {
     "videointelligence.googleapis.com",
     "vision.googleapis.com",
     "vpcaccess.googleapis.com",
-      "containerscanning.googleapis.com",
-      "containeranalysis.googleapis.com",
+    "containerscanning.googleapis.com",
+    "containeranalysis.googleapis.com",
+    "cloudasset.googleapis.com",
   ]
 }
 
