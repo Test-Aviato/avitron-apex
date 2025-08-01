@@ -29,3 +29,4 @@ locals {
     pubsub  = var.locations.pubsub
   }
 }
+
