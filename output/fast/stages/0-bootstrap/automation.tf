@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,12 @@ module "automation-project" {
   # machine (service accounts) IAM bindings
   iam = {
     "roles/owner" = [
+      module.automation-tf-bootstrap-sa.iam_email
+    ]
+    "roles/artifactregistry.reader" = [
+      module.automation-tf-bootstrap-sa.iam_email
+    ]
+    "roles/containeranalysis.occurrences.viewer" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
@@ -168,11 +174,6 @@ module "automation-project" {
       "iam.googleapis.com",
       "iamcredentials.googleapis.com",
       "logging.googleapis.com",
-      "managedidentities.googleapis.com",
-      "memcache.googleapis.com",
-      "meshca.googleapis.com",
-      "metastore.googleapis.com",
-      "ml.googleapis.com",
       "monitoring.googleapis.com",
       "networkconnectivity.googleapis.com",
       "networkmanagement.googleapis.com",
@@ -215,6 +216,7 @@ module "automation-project" {
       "artifactregistry.googleapis.com",
       "containerscanning.googleapis.com",
       "containeranalysis.googleapis.com",
+      "essentialcontacts.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
