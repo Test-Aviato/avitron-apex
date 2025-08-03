@@ -1,6 +1,6 @@
 module "log-export-project" {
-  source = "../../../modules/project"
-  name   = var.resource_names["project-logs"]
+  source          = "../../../modules/project"
+  name            = var.resource_names["project-logs"]
   parent = coalesce(
     var.project_parent_ids.logging, "organizations/${var.organization.id}"
   )
@@ -106,6 +106,5 @@ module "log-export-project" {
     "vision.googleapis.com",
     "vpcaccess.googleapis.com",
     "containerscanning.googleapis.com",
-    "containeranalysis.googleapis.com",
   ]
 }
