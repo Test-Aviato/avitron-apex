@@ -221,6 +221,7 @@ module "automation-project" {
       "container.googleapis.com",
       "artifactregistry.googleapis.com",
       "containerscanning.googleapis.com",
+	  "containeranalysis.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
