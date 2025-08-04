@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,11 +174,6 @@ module "automation-project" {
       "iam.googleapis.com",
       "iamcredentials.googleapis.com",
       "logging.googleapis.com",
-      "managedidentities.googleapis.com",
-      "memcache.googleapis.com",
-      "meshca.googleapis.com",
-      "metastore.googleapis.com",
-      "ml.googleapis.com",
       "monitoring.googleapis.com",
       "networkconnectivity.googleapis.com",
       "networkmanagement.googleapis.com",
@@ -212,7 +207,6 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
-      "containerscanning.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
@@ -221,6 +215,8 @@ module "automation-project" {
       "container.googleapis.com",
       "artifactregistry.googleapis.com",
       "containerscanning.googleapis.com",
+      "containeranalysis.googleapis.com",
+      "essentialcontacts.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service

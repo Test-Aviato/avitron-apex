@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,37 +18,40 @@
 
 # yaml-language-server: $schema=../../schemas/org-policies.schema.json
 
-iam.automaticIamGrantsForDefaultServiceAccounts:
-  rules:
-    - enforce: true
-
-iam.disableAuditLoggingExemption:
-  rules:
-    - enforce: true
-
-iam.managed.disableServiceAccountKeyCreation:
-  rules:
-    - enforce: true
-
-iam.managed.disableServiceAccountKeyUpload:
-  rules:
-    - enforce: true
-
-iam.serviceAccountKeyExposureResponse:
+run.allowedIngress:
   rules:
     - allow:
         values:
-          - is:DISABLE_KEY
+          - is:internal-and-cloud-load-balancing
 
-iam.workloadIdentityPoolAwsAccounts:
+run.managed.requireInvokerIam:
   rules:
-    - deny:
-        all: true
+    - enforce: true
 
-iam.workloadIdentityPoolProviders:
-  rules:
-    - allow:
-        values:
-          - https://token.actions.githubusercontent.com
-          - https://gitlab.com
-          - https://app.terraform.io
+# run.allowedVPCEgress:
+#   rules:
+#   - allow:
+#       values:
+#       - is:private-ranges-only
+
+# cloudfunctions.allowedIngressSettings:
+#   rules:
+#   - allow:
+#       values:
+#       - is:ALLOW_INTERNAL_ONLY
+
+# cloudfunctions.allowedVpcConnectorEgressSettings:
+#   rules:
+#   - allow:
+#       values:
+#       - is:PRIVATE_RANGES_ONLY
+
+# cloudfunctions.requireVPCConnector:
+#   rules:
+#   - enforce: true
+
+# cloudfunctions.restrictAllowedGenerations:
+#   rules:
+#   - allow:
+#       values:
+#       - is:2ndGen
