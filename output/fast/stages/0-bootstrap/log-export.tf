@@ -66,11 +66,8 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
-    "containeranalysis.googleapis.com", # Enable Container Analysis API
-    "containerscanning.googleapis.com", # Enable Container Scanning API
-    "logging.googleapis.com",
-    "monitoring.googleapis.com",
+	  "containeranalysis.googleapis.com",
+      "containerscanning.googleapis.com",
   ]
 }
 
