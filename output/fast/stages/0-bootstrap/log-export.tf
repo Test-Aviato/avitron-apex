@@ -42,7 +42,7 @@ locals {
 }
 
 module "log-export-project" {
-  source          = "../../../modules/project"
+  source = "../../../modules/project"
   billing_account = var.billing_account.id
   name            = var.resource_names["project-logs"]
   parent = coalesce(
@@ -115,3 +115,40 @@ module "log-export-pubsub" {
   )
   regions = local.locations.pubsub
 }
+
+resource "google_project_service" "containeranalysis" {
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "containerscanning" {
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_logging_metric" "audit_config_changes" {
+  count       = 1
+  name        = "audit-config-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Audit Configuration Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName:"SetIamPolicy"
+    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
+    AND resource.type:"project"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.goog
