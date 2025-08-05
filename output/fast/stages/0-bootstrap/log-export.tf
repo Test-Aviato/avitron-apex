@@ -55,10 +55,6 @@ module "log-export-project" {
     ? {}
     : { (var.essential_contacts) = ["ALL"] }
   )
-  iam = {
-    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
-    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
-  }
   services = [
     # "cloudresourcemanager.googleapis.com",
     # "iam.googleapis.com",
@@ -66,9 +62,20 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-	  "containeranalysis.googleapis.com",
-      "containerscanning.googleapis.com",
+    "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
+    "containeranalysis.googleapis.com", # Enable Container Analysis API
+    "containerscanning.googleapis.com", # Enable Container Scanning API
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
   ]
+  logging_sinks = {
+        audit-logs = {
+          description   = "Audit logs"
+          filter        = "log_id(\"cloudaudit.googleapis.com/activity\") OR log_id(\"cloudaudit.googleapis.com/system_event\") OR log_id(\"cloudaudit.googleapis.com/policy\") OR log_id(\"cloudaudit.googleapis.com/access_transparency\")"
+          destination = "bigquery.googleapis.com/projects/${var.resource_names["project-logs"]}/datasets/logs"
+        }
+    }
+
 }
 
 # one log export per type, with conditionals to skip those not needed
