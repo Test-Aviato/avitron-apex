@@ -51,12 +51,6 @@ module "automation-project" {
     "roles/owner" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
-    "roles/artifactregistry.reader" = [
-      module.automation-tf-bootstrap-sa.iam_email
-    ]
-    "roles/containeranalysis.occurrences.viewer" = [
-      module.automation-tf-bootstrap-sa.iam_email
-    ]
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
@@ -207,6 +201,9 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
+      "containerscanning.googleapis.com",
+      "containeranalysis.googleapis.com",
+      "essentialcontacts.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
@@ -216,7 +213,6 @@ module "automation-project" {
       "artifactregistry.googleapis.com",
       "containerscanning.googleapis.com",
       "containeranalysis.googleapis.com",
-      "essentialcontacts.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
@@ -236,4 +232,16 @@ module "automation-project" {
       # DATA_WRITE = {}
     }
   }
+}
+resource "google_project_service" "containeranalysis" {
+  project = module.automation-project.project_id
+  service = "containeranalysis.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "containerscanning" {
+  project = module.automation-project.project_id
+  service = "containerscanning.googleapis.com"
+  disable_on_destroy = false
+  depends_on = [google_project_service.containeranalysis]
 }
