@@ -51,15 +51,13 @@ module "automation-project" {
     "roles/owner" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
-	"roles/artifactregistry.reader" = [
+    "roles/artifactregistry.reader" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
     "roles/containeranalysis.occurrences.viewer" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
-    "roles/cloudasset.owner" = [
-      module.automation-tf-bootstrap-sa.iam_email
-    ]	
+    "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
     ]
@@ -178,4 +176,62 @@ module "automation-project" {
       "logging.googleapis.com",
       "monitoring.googleapis.com",
       "networkconnectivity.googleapis.com",
-      
+      "networkmanagement.googleapis.com",
+      "networksecurity.googleapis.com",
+      "networkservices.googleapis.com",
+      "notebooks.googleapis.com",
+      "orgpolicy.googleapis.com",
+      "privateca.googleapis.com",
+      "pubsub.googleapis.com",
+      "pubsublite.googleapis.com",
+      "recaptchaenterprise.googleapis.com",
+      "recommender.googleapis.com",
+      "redis.googleapis.com",
+      "run.googleapis.com",
+      "secretmanager.googleapis.com",
+      "servicecontrol.googleapis.com",
+      "servicedirectory.googleapis.com",
+      "spanner.googleapis.com",
+      "speakerid.googleapis.com",
+      "speech.googleapis.com",
+      "sqladmin.googleapis.com",
+      "storage-component.googleapis.com",
+      "storage.googleapis.com",
+      "storagetransfer.googleapis.com",
+      "sts.googleapis.com",
+      "texttospeech.googleapis.com",
+      "tpu.googleapis.com",
+      "trafficdirector.googleapis.com",
+      "transcoder.googleapis.com",
+      "translate.googleapis.com",
+      "videointelligence.googleapis.com",
+      "vision.googleapis.com",
+      "vpcaccess.googleapis.com",
+		  "containeranalysis.googleapis.com",
+      "containerscanning.googleapis.com",
+    ],
+    # enable specific service only after org policies have been applied
+    var.bootstrap_user != null ? [] : [
+      "cloudbuild.googleapis.com",
+      "compute.googleapis.com",
+      "container.googleapis.com",
+    ]
+  )
+  # Enable IAM data access logs to capture impersonation and service
+  # account token generation/exchanges events. This is implemented within the
+  # automation project to limit log volume. For heightened security,
+  # consider enabling it at the organization level. A log sink within
+  # the organization will collect and store these logs in a logging
+  # bucket. See
+  # https://cloud.google.com/iam/docs/audit-logging#audited_operations
+  logging_data_access = {
+    "iam.googleapis.com" = {
+      # ADMIN_READ captures impersonation and token generation/exchanges
+      ADMIN_READ = {}
+      # enable DATA_WRITE if you want to capture configuration changes
+      # to IAM-related resources (roles, deny policies, service
+      # accounts, identity pools, etc)
+      # DATA_WRITE = {}
+    }
+  }
+}
