@@ -66,11 +66,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
-    "containeranalysis.googleapis.com", # Enable Container Analysis API
-    "containerscanning.googleapis.com", # Enable Container Scanning API
+	  "containeranalysis.googleapis.com",
+    "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
+	  "cloudasset.googleapis.com",
   ]
 }
 
@@ -115,7 +115,6 @@ module "log-export-pubsub" {
   )
   regions = local.locations.pubsub
 }
-
 resource "google_project_service" "containeranalysis" {
   project                    = module.log-export-project.project_id
   service                    = "containeranalysis.googleapis.com"
@@ -136,19 +135,3 @@ resource "google_project_service" "cloudasset" {
   disable_on_destroy         = false
   disable_dependent_services = false
 }
-
-resource "google_logging_metric" "audit_config_changes" {
-  count       = 1
-  name        = "audit-config-changes"
-  project     = module.log-export-project.project_id
-  description = "Metric for tracking Audit Configuration Changes"
-  filter      = <<-FILTER
-    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
-    AND protoPayload.methodName:"SetIamPolicy"
-    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
-    AND resource.type:"project"
-    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
-  FILTER
-  metric_descriptor {
-    launch_stage = "BETA"
-    name         = "metric.goog
