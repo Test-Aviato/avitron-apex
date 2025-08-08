@@ -51,6 +51,12 @@ module "automation-project" {
     "roles/owner" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
+    "roles/artifactregistry.reader" = [
+      module.automation-tf-bootstrap-sa.iam_email
+    ]
+    "roles/containeranalysis.occurrences.viewer" = [
+      module.automation-tf-bootstrap-sa.iam_email
+    ]
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
@@ -168,11 +174,6 @@ module "automation-project" {
       "iam.googleapis.com",
       "iamcredentials.googleapis.com",
       "logging.googleapis.com",
-      "managedidentities.googleapis.com",
-      "memcache.googleapis.com",
-      "meshca.googleapis.com",
-      "metastore.googleapis.com",
-      "ml.googleapis.com",
       "monitoring.googleapis.com",
       "networkconnectivity.googleapis.com",
       "networkmanagement.googleapis.com",
@@ -206,7 +207,31 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
+      "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
-    var.bootstrap_user
+    var.bootstrap_user != null ? [] : [
+      "cloudbuild.googleapis.com",
+      "compute.googleapis.com",
+      "container.googleapis.com",
+    ]
+  )
+  # Enable IAM data access logs to capture impersonation and service
+  # account token generation/exchanges events. This is implemented within the
+  # automation project to limit log volume. For heightened security,
+  # consider enabling it at the organization level. A log sink within
+  # the organization will collect and store these logs in a logging
+  # bucket. See
+  # https://cloud.google.com/iam/docs/audit-logging#audited_operations
+  logging_data_access = {
+    "iam.googleapis.com" = {
+      # ADMIN_READ captures impersonation and token generation/exchanges
+      ADMIN_READ = {}
+      # enable DATA_WRITE if you want to capture configuration changes
+      # to IAM-related resources (roles, deny policies, service
+      # accounts, identity pools, etc)
+      # DATA_WRITE = {}
+    }
+  }
+}
