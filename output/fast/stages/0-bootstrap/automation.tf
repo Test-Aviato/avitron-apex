@@ -207,16 +207,14 @@ module "automation-project" {
       "videointelligence.googleapis.com",
       "vision.googleapis.com",
       "vpcaccess.googleapis.com",
+      "containerscanning.googleapis.com",
+      "containeranalysis.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
       "cloudbuild.googleapis.com",
       "compute.googleapis.com",
       "container.googleapis.com",
-      "artifactregistry.googleapis.com",
-      "containerscanning.googleapis.com",
-      "containeranalysis.googleapis.com",
-      "essentialcontacts.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
