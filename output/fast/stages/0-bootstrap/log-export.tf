@@ -43,8 +43,7 @@ locals {
 
 module "log-export-project" {
   source = "../../../modules/project"
-  billing_account = var.billing_account.id
-  name            = var.resource_names["project-logs"]
+  name   = var.resource_names["project-logs"]
   parent = coalesce(
     var.project_parent_ids.logging, "organizations/${var.organization.id}"
   )
@@ -69,8 +68,6 @@ module "log-export-project" {
     "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
     "containeranalysis.googleapis.com", # Enable Container Analysis API
     "containerscanning.googleapis.com", # Enable Container Scanning API
-    "logging.googleapis.com",
-    "monitoring.googleapis.com",
   ]
 }
 
