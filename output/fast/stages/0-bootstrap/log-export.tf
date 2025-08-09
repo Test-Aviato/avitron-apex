@@ -67,8 +67,8 @@ module "log-export-project" {
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
     "containeranalysis.googleapis.com", # Enable Container Analysis API
-	  "containerscanning.googleapis.com", # Enable GCR Container Scanning API
-    "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
+    "containerscanning.googleapis.com", # Enable Container Scanning API
+	"cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
     "logging.googleapis.com",
     "monitoring.googleapis.com",
   ]
@@ -121,7 +121,6 @@ resource "google_project_service" "containeranalysis" {
   service                    = "containeranalysis.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-  depends_on = [module.log-export-project]
 }
 
 resource "google_project_service" "containerscanning" {
@@ -129,7 +128,6 @@ resource "google_project_service" "containerscanning" {
   service                    = "containerscanning.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-  depends_on = [module.log-export-project]
 }
 
 resource "google_project_service" "cloudasset" {
@@ -137,7 +135,6 @@ resource "google_project_service" "cloudasset" {
   service                    = "cloudasset.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-  depends_on = [module.log-export-project]
 }
 
 resource "google_logging_metric" "audit_config_changes" {
@@ -271,7 +268,7 @@ resource "google_logging_metric" "custom_role_changes" {
     unit         = "1"
     labels {
       key         = "member_id"
-      description = "The member"
+      description = "Custom Role"
       value_type  = "STRING"
     }
   }
@@ -324,4 +321,3 @@ resource "google_logging_metric" "project_ownership_changes" {
   metric_descriptor {
     launch_stage = "BETA"
     name         = "metric.googleapis.com/logging/project
-
