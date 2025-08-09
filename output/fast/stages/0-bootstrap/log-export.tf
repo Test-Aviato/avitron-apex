@@ -146,7 +146,7 @@ resource "google_logging_metric" "audit_config_changes" {
     logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
     AND protoPayload.methodName:"SetIamPolicy"
     AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
-    AND resource.type:"project"
+    AND resource.type="project"
     AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
   FILTER
   metric_descriptor {
@@ -268,7 +268,7 @@ resource "google_logging_metric" "custom_role_changes" {
     unit         = "1"
     labels {
       key         = "member_id"
-      description = "Custom Role"
+      description = "The metric_value"
       value_type  = "STRING"
     }
   }
