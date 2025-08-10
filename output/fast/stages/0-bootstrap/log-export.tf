@@ -42,7 +42,7 @@ locals {
 }
 
 module "log-export-project" {
-  source = "../../../modules/project"
+  source          = "../../../modules/project"
   billing_account = var.billing_account.id
   name            = var.resource_names["project-logs"]
   parent = coalesce(
@@ -66,11 +66,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "cloudasset.googleapis.com", # Enable Cloud Asset Inventory API
-    "containeranalysis.googleapis.com", # Enable Container Analysis API
-    "containerscanning.googleapis.com", # Enable Container Scanning API
+	  "containeranalysis.googleapis.com",
+    "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
+		"cloudasset.googleapis.com",
   ]
 }
 
@@ -146,7 +146,7 @@ resource "google_logging_metric" "audit_config_changes" {
     logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
     AND protoPayload.methodName:"SetIamPolicy"
     AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
-    AND resource.type:"project"
+    AND resource.type="project"
     AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
   FILTER
   metric_descriptor {
@@ -268,7 +268,7 @@ resource "google_logging_metric" "custom_role_changes" {
     unit         = "1"
     labels {
       key         = "member_id"
-      description = "Custom Role"
+      description = "The Custom Role"
       value_type  = "STRING"
     }
   }
@@ -321,3 +321,4 @@ resource "google_logging_metric" "project_ownership_changes" {
   metric_descriptor {
     launch_stage = "BETA"
     name         = "metric.googleapis.com/logging/project
+
