@@ -26,8 +26,9 @@ module "projects" {
   data_merges = {
     services = [
       "stackdriver.googleapis.com",
-	  "containeranalysis.googleapis.com",
+	    "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
+      "artifactregistry.googleapis.com",
     ]
   }
   data_overrides = {
