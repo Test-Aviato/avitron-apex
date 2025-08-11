@@ -66,7 +66,7 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-		"containeranalysis.googleapis.com",
+	  "containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
@@ -321,3 +321,13 @@ resource "google_logging_metric" "project_ownership_changes" {
   metric_descriptor {
     launch_stage = "BETA"
     name         = "metric.googleapis.com/logging/project
+FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
