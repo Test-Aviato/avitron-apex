@@ -66,7 +66,7 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-	  "containeranalysis.googleapis.com",
+		"containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
@@ -236,7 +236,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
     display_name = "Metric Absence"
     condition_threshold {
       filter                     = <<-FILTER
-          resource.type = "gcs_bucket"
+          resource.type = "gcp_project"
           AND metric.type = "logging.googleapis.com/log_based_metrics"
           AND metric.name = "metric.googleapis.com/logging/storage/bucket-iam-changes"
       FILTER
@@ -321,4 +321,3 @@ resource "google_logging_metric" "project_ownership_changes" {
   metric_descriptor {
     launch_stage = "BETA"
     name         = "metric.googleapis.com/logging/project
-
