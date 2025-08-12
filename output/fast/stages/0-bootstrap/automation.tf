@@ -209,7 +209,6 @@ module "automation-project" {
       "vpcaccess.googleapis.com",
       "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
-      "cloudasset.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
