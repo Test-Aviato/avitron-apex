@@ -153,6 +153,7 @@ module "automation-project" {
       "contactcenterinsights.googleapis.com",
       "container.googleapis.com",
       "containeranalysis.googleapis.com",
+      "containerscanning.googleapis.com",
       "containerregistry.googleapis.com",
       "containerthreatdetection.googleapis.com",
       "datacatalog.googleapis.com",
@@ -216,6 +217,9 @@ module "automation-project" {
       "cloudbuild.googleapis.com",
       "compute.googleapis.com",
       "container.googleapis.com",
+	    "containeranalysis.googleapis.com",
+      "containerscanning.googleapis.com",
+      "cloudasset.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
