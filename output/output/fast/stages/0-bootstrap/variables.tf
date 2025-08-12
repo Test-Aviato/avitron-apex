@@ -36,6 +36,10 @@ variable "resource_names" {
     sa-resman_ro         = optional(string, "prod-resman-0r")
     sa-vpcsc             = optional(string, "prod-vpcsc-0")
     sa-vpcsc_ro          = optional(string, "prod-vpcsc-0r")
+	wf-bootstrap          = optional(string, "$${prefix}-bootstrap")
+    wf-provider_template  = optional(string, "$${prefix}-bootstrap-$${key}")
+    wif-bootstrap         = optional(string, "$${prefix}-bootstrap")
+    wif-provider_template = optional(string, "$${prefix}-bootstrap-$${key}")
   })
   nullable = false
   default  = {}
