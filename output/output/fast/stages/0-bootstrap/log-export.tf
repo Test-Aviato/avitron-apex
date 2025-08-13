@@ -55,10 +55,6 @@ module "log-export-project" {
     ? {}
     : { (var.essential_contacts) = ["ALL"] }
   )
-  iam = {
-    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
-    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
-  }
   services = [
     # "cloudresourcemanager.googleapis.com",
     # "iam.googleapis.com",
@@ -66,16 +62,12 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-		"containeranalysis.googleapis.com",
+    "containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
-		"cloudasset.googleapis.com",
+    "cloudasset.googleapis.com",
   ]
-
-  # service_agents_config = {
-  #   all_services = true
-  # }
 }
 
 # one log export per type, with conditionals to skip those not needed
@@ -142,6 +134,7 @@ resource "google_project_service" "cloudasset" {
 }
 
 resource "google_logging_metric" "audit_config_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
   name        = "audit-config-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Audit Configuration Changes"
@@ -170,6 +163,7 @@ resource "google_logging_metric" "audit_config_changes" {
 }
 
 resource "google_monitoring_alert_policy" "audit_config_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Audit configuration changes in project"
   combiner                 = "OR"
@@ -197,6 +191,7 @@ resource "google_monitoring_alert_policy" "audit_config_changes" {
 }
 
 resource "google_logging_metric" "bucket_permission_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
   name        = "bucket-permission-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Cloud Storage Bucket IAM Permission Changes"
@@ -224,6 +219,7 @@ resource "google_logging_metric" "bucket_permission_changes" {
 }
 
 resource "google_monitoring_alert_policy" "bucket_permission_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Cloud Storage Bucket IAM changes"
   combiner                 = "OR"
@@ -251,6 +247,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
 }
 
 resource "google_logging_metric" "custom_role_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
   name        = "custom-role-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Custom Role Changes"
@@ -278,6 +275,7 @@ resource "google_logging_metric" "custom_role_changes" {
 }
 
 resource "google_monitoring_alert_policy" "custom_role_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Custom Role Changes in organization"
   combiner                 = "OR"
@@ -305,6 +303,7 @@ resource "google_monitoring_alert_policy" "custom_role_changes" {
 }
 
 resource "google_logging_metric" "project_ownership_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
   name        = "project-ownership-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Project Ownership Assignments/Changes"
@@ -333,10 +332,11 @@ resource "google_logging_metric" "project_ownership_changes" {
 }
 
 resource "google_monitoring_alert_policy" "project_ownership_changes" {
-  project                  = module.log-export-project.project_id
-  display_name             = "Project Ownership Assignments/Changes"
-  combiner                 = "OR"
-  enabled                  = true
+  count                        = 1
+  project                      = module.log-export-project.project_id
+  display_name                 = "Project Ownership Assignments/Changes"
+  combiner                     = "OR"
+  enabled                      = true
   notification_channels    = []
   alert_strategy {
     auto_close = "604800s"
@@ -379,3 +379,4 @@ resource "google_project_service" "cloudasset" {
   disable_on_destroy         = false
   disable_dependent_services = false
 }
+
