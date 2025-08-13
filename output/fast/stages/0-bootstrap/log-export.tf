@@ -68,21 +68,6 @@ module "log-export-project" {
     "monitoring.googleapis.com",
 		"cloudasset.googleapis.com",
   ]
-  # Enable IAM data access logs to capture impersonation and service
-  # account token generation/exchanges events. This is implemented within the
-  # automation project to limit log volume. For heightened security,
-  # consider enabling it at the organization level. See
-  # https://cloud.google.com/iam/docs/audit-logging#audited_operations
-   logging_data_access = {
-    "iam.googleapis.com" = {
-      # ADMIN_READ captures impersonation and token generation/exchanges
-      ADMIN_READ = {}
-      # enable DATA_WRITE if you want to capture configuration changes
-      # to IAM-related resources (roles, deny policies, service
-      # accounts, identity pools, etc)
-      # DATA_WRITE = {}
-    }
-  }
 }
 
 # one log export per type, with conditionals to skip those not needed
@@ -128,6 +113,7 @@ module "log-export-pubsub" {
 }
 
 resource "google_project_service" "containeranalysis" {
+  count                    = 1
   project                    = module.log-export-project.project_id
   service                    = "containeranalysis.googleapis.com"
   disable_on_destroy         = false
@@ -148,4 +134,36 @@ resource "google_project_service" "cloudasset" {
   disable_dependent_services = false
 }
 
-resource "google_logging_metric
+resource "google_logging_metric" "audit_config_changes" {
+  count       = var.enable_essential_contacts ? 1 : 0
+  name        = "audit-config-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Audit Configuration Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName:"SetIamPolicy"
+    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
+    AND resource.type="project"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/iam/audit-config-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "project_id"
+      description = "The project"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.project_id)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "audit_config_changes" {
+  count                  = var.enable_essential_contacts ? 1 : 0
+  project                = module.log-export-project.project_id
+  display_name           = "Audit configuration changes in project"
