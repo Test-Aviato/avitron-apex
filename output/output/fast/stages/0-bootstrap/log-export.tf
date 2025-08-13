@@ -62,11 +62,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "containeranalysis.googleapis.com",
+		"containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
-    "cloudasset.googleapis.com",
+		"cloudasset.googleapis.com",
   ]
 }
 
@@ -117,7 +117,7 @@ resource "google_project_service" "containeranalysis" {
   service                    = "containeranalysis.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-}
+  }
 
 resource "google_project_service" "containerscanning" {
   project                    = module.log-export-project.project_id
@@ -131,7 +131,7 @@ resource "google_project_service" "cloudasset" {
   service                    = "cloudasset.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-}
+  }
 
 resource "google_logging_metric" "audit_config_changes" {
   count       = var.enable_logging_metric_and_alerts ? 1 : 0
@@ -332,11 +332,11 @@ resource "google_logging_metric" "project_ownership_changes" {
 }
 
 resource "google_monitoring_alert_policy" "project_ownership_changes" {
-  count                        = 1
-  project                      = module.log-export-project.project_id
-  display_name                 = "Project Ownership Assignments/Changes"
-  combiner                     = "OR"
-  enabled                      = true
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "Project Ownership Assignments/Changes"
+  combiner                 = "OR"
+  enabled                  = true
   notification_channels    = []
   alert_strategy {
     auto_close = "604800s"
@@ -379,4 +379,3 @@ resource "google_project_service" "cloudasset" {
   disable_on_destroy         = false
   disable_dependent_services = false
 }
-
