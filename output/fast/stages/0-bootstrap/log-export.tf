@@ -62,15 +62,26 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "containeranalysis.googleapis.com",
+		"containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
-    "cloudasset.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
+		"cloudasset.googleapis.com",
   ]
-
-  service_agents_config = {
-    all_services = true
+  # Enable IAM data access logs to capture impersonation and service
+  # account token generation/exchanges events. This is implemented within the
+  # automation project to limit log volume. For heightened security,
+  # consider enabling it at the organization level. See
+  # https://cloud.google.com/iam/docs/audit-logging#audited_operations
+   logging_data_access = {
+    "iam.googleapis.com" = {
+      # ADMIN_READ captures impersonation and token generation/exchanges
+      ADMIN_READ = {}
+      # enable DATA_WRITE if you want to capture configuration changes
+      # to IAM-related resources (roles, deny policies, service
+      # accounts, identity pools, etc)
+      # DATA_WRITE = {}
+    }
   }
 }
 
@@ -110,4 +121,31 @@ module "log-export-pubsub" {
   source     = "../../../modules/pubsub"
   for_each   = toset([for k, v in var.log_sinks : k if v.type == "pubsub"])
   project_id = module.log-export-project.project_id
-  name = templatestring
+  name = templatestring(
+    var.resource_names["pubsub-logs_template"], { key = each.key }
+  )
+  regions = local.locations.pubsub
+}
+
+resource "google_project_service" "containeranalysis" {
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "containerscanning" {
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_logging_metric
