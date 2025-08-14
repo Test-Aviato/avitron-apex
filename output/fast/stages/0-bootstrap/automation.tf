@@ -57,6 +57,9 @@ module "automation-project" {
     "roles/containeranalysis.occurrences.viewer" = [
       module.automation-tf-bootstrap-sa.iam_email
     ]
+    "roles/containerscanning.occurrences.viewer" = [
+      module.automation-tf-bootstrap-sa.iam_email
+    ]    
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
