@@ -39,6 +39,7 @@ locals {
     module.log-export-logbucket
   )
   log_types = toset([for k, v in var.log_sinks : v.type])
+  enable_logging_metric_and_alerts = true
 }
 
 module "log-export-project" {
@@ -138,7 +139,7 @@ resource "google_project_service" "cloudasset" {
 }
 
 resource "google_logging_metric" "audit_config_changes" {
-  count       = var.enable_essential_contacts ? 1 : 0
+  count       = local.enable_logging_metric_and_alerts ? 1 : 0
   name        = "audit-config-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Audit Configuration Changes"
@@ -151,12 +152,12 @@ resource "google_logging_metric" "audit_config_changes" {
   FILTER
   metric_descriptor {
     launch_stage = "BETA"
-    name         = "metric.googleapis.com/logging/iam/audit-config-changes"
+    name         = "metric.googleapis.com/logging/iam/custom-role-changes"
     type         = "GAUGE"
     unit         = "1"
     labels {
-      key         = "project_id"
-      description = "The project"
+      key         = "member_id"
+      description = "The Custom Role"
       value_type  = "STRING"
     }
   }
@@ -167,7 +168,7 @@ resource "google_logging_metric" "audit_config_changes" {
 }
 
 resource "google_monitoring_alert_policy" "audit_config_changes" {
-  count = var.enable_essential_contacts ? 1 : 0
+  count = local.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Audit configuration changes in project"
   combiner                 = "OR"
@@ -195,7 +196,7 @@ resource "google_monitoring_alert_policy" "audit_config_changes" {
 }
 
 resource "google_logging_metric" "bucket_permission_changes" {
-  count       = var.enable_essential_contacts ? 1 : 0
+  count       = local.enable_logging_metric_and_alerts ? 1 : 0
   name        = "bucket-permission-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Cloud Storage Bucket IAM Permission Changes"
@@ -223,7 +224,7 @@ resource "google_logging_metric" "bucket_permission_changes" {
 }
 
 resource "google_monitoring_alert_policy" "bucket_permission_changes" {
-  count = var.enable_essential_contacts ? 1 : 0
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Cloud Storage Bucket IAM changes"
   combiner                 = "OR"
@@ -363,23 +364,29 @@ resource "google_monitoring_alert_policy" "project_ownership_changes" {
   }
 }
 
-resource "google_project_service" "containeranalysis" {
-  project                    = module.log-export-project.project_id
-  service                    = "containeranalysis.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
-}
 
-resource "google_project_service" "containerscanning" {
-  project                    = module.log-export-project.project_id
-  service                    = "containerscanning.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
-}
 
-resource "google_project_service" "cloudasset" {
-  project                    = module.log-export-project.project_id
-  service                    = "cloudasset.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
+================================================
+File: output/output/output/output/fast/stages/0-bootstrap/variables.tf
+================================================
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+variable "essential_contacts" {
+  description = "Email used for essential contacts, unset if null."
+  type        = string
+  default     = "essential-contacts@example.com"
 }
