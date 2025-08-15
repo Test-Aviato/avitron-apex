@@ -59,7 +59,7 @@ module "automation-project" {
     ]
     "roles/containerscanning.occurrences.viewer" = [
       module.automation-tf-bootstrap-sa.iam_email
-    ]
+    ]    
     "roles/cloudasset.owner" = [module.automation-tf-bootstrap-sa.iam_email]
     "roles/iam.serviceAccountTokenCreator" = [
       module.automation-tf-resman-sa.iam_email
@@ -211,6 +211,7 @@ module "automation-project" {
       "vpcaccess.googleapis.com",
       "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
+      "cloudasset.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
