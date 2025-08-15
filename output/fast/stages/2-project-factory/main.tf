@@ -26,7 +26,7 @@ module "projects" {
   data_merges = {
     services = [
       "stackdriver.googleapis.com",
-	  "containeranalysis.googleapis.com",
+	    "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
     ]
   }
@@ -48,25 +48,4 @@ module "projects" {
           k => "serviceAccount:${v}" if v != null
         },
         var.groups,
-        var.factories_config.context.iam_principals
-      )
-      kms_keys = merge(
-        var.kms_keys,
-        var.factories_config.context.kms_keys
-      )
-      perimeters = var.perimeters
-      tag_values = merge(
-        {
-          for k, v in var.org_policy_tags.values :
-          "${var.org_policy_tags.key_name}/${k}" => v
-        },
-        var.tag_values,
-        var.factories_config.context.tag_values
-      )
-      vpc_host_projects = merge(
-        var.host_project_ids,
-        var.factories_config.context.vpc_host_projects
-      )
-    }
-  })
-}
+        
