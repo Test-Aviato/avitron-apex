@@ -19,4 +19,3 @@ variable "essential_contacts" {
   type        = string
   default     = "essential-contacts@example.com"
 }
-

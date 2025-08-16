@@ -55,6 +55,10 @@ module "log-export-project" {
     ? {}
     : { (var.essential_contacts) = ["ALL"] }
   )
+  iam = {
+    "roles/owner"  = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/viewer" = [module.automation-tf-bootstrap-r-sa.iam_email]
+  }
   services = [
     # "cloudresourcemanager.googleapis.com",
     # "iam.googleapis.com",
@@ -62,11 +66,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-		"containeranalysis.googleapis.com",
+    "containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
+    "cloudasset.googleapis.com",
     "logging.googleapis.com",
-    "monitoring.googleapis.com",
-		"cloudasset.googleapis.com",
+    "monitoring.googleapis.com"
   ]
 }
 
@@ -117,7 +121,7 @@ resource "google_project_service" "containeranalysis" {
   service                    = "containeranalysis.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-  }
+}
 
 resource "google_project_service" "containerscanning" {
   project                    = module.log-export-project.project_id
@@ -131,7 +135,7 @@ resource "google_project_service" "cloudasset" {
   service                    = "cloudasset.googleapis.com"
   disable_on_destroy         = false
   disable_dependent_services = false
-  }
+}
 
 resource "google_logging_metric" "audit_config_changes" {
   count       = var.enable_logging_metric_and_alerts ? 1 : 0
@@ -147,7 +151,7 @@ resource "google_logging_metric" "audit_config_changes" {
   FILTER
   metric_descriptor {
     launch_stage = "BETA"
-    name         = "metric.googleapis.com/logging/attributions/project"
+    name         = "metric.googleapis.com/logging/iam/custom-role-changes"
     type         = "GAUGE"
     unit         = "1"
     labels {

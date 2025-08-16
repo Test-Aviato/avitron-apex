@@ -156,8 +156,7 @@ module "automation-project" {
       "contactcenterinsights.googleapis.com",
       "container.googleapis.com",
       "containeranalysis.googleapis.com",
-      "containerregistry.googleapis.com",
-      "containerthreatdetection.googleapis.com",
+      "containerscanning.googleapis.com",
       "datacatalog.googleapis.com",
       "dataflow.googleapis.com",
       "datafusion.googleapis.com",
@@ -212,6 +211,7 @@ module "automation-project" {
       "vpcaccess.googleapis.com",
       "containeranalysis.googleapis.com",
       "containerscanning.googleapis.com",
+      "cloudasset.googleapis.com",
     ],
     # enable specific service only after org policies have been applied
     var.bootstrap_user != null ? [] : [
