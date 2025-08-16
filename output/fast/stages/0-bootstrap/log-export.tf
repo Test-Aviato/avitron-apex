@@ -113,7 +113,514 @@ module "log-export-pubsub" {
 }
 
 resource "google_project_service" "containeranalysis" {
-  count                    = 1
+  count                    = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "containerscanning" {
+  count                    = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_logging_metric" "audit_config_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "audit-config-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Audit Configuration Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName:"SetIamPolicy"
+    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
+    AND resource.type="project"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/attributions/project"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "project_id"
+      description = "The project"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(jsonPayload.protoPayload.authenticationInfo.principalEmail)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "audit_config_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "Audit configuration changes in project"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gcp_project"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/iam/custom-role-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "bucket_permission_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "bucket-permission-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Cloud Storage Bucket IAM Permission Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Fdata_access"
+    AND protoPayload.methodName="storage.setIamPermissions"
+    AND resource.type="gcs_bucket"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/storage/bucket-iam-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "bucket_name"
+      description = "The bucket"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.bucket_name)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "bucket_permission_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "Cloud Storage Bucket IAM changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gcs_bucket"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/storage/bucket-iam-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "custom_role_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "custom-role-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Custom Role Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName=("google.iam.admin.v1.CreateRole" OR "google.iam.admin.v1.DeleteRole" OR "google.iam.admin.v1.UpdateRole")
+    AND resource.type="organization"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/iam/custom-role-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "member_id"
+      description = "The Custom Role"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.project_id)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "custom_role_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "Custom Role Changes in organization"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gcp_project"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/iam/custom-role-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "project_ownership_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "project-ownership-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking Project Ownership Assignments/Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName=("SetIamPolicy")
+    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
+    AND resource.type="project"
+    AND protoPayload.requestMetadata.callerSuppliedUserAgent:"gcloud-projects-update"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/project-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "project_id"
+      description = "The project"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.project_id)"
+  label_extractors = {
+    "channel" = "EXTRACT(protoPayload.serviceData.policyDelta.bindingDeltas[0].action)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "project_ownership_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "Project Ownership Assignments/Changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gcp_project"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/project-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "sql_instance_configuration_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "sql-instance-configuration-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking SQL Instance Configuration Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.serviceName="sqladmin.googleapis.com"
+    AND (protoPayload.methodName="cloudsql.instances.update" OR protoPayload.methodName="cloudsql.instances.patch")
+    AND resource.type="cloudsql_database_instance"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/sql/configuration-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "instance_name"
+      description = "The Cloud SQL instance"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.database_id)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "sql_instance_configuration_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "SQL Instance Configuration Changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "cloudsql_database_instance"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/sql/configuration-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "vpc_firewall_rule_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "vpc-firewall-rule-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking VPC Firewall Rule Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName=("compute.firewalls.insert" OR "compute.firewalls.patch" OR "compute.firewalls.delete")
+    AND resource.type="gce_firewall_rule"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/network/firewall-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "firewall_rule_name"
+      description = "The firewall rule"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.firewall_rule_name)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "vpc_firewall_rule_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "VPC Network Firewall Rule Changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gce_firewall_rule"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/network/firewall-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "vpc_network_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "vpc-network-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking VPC Network Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName=("compute.networks.insert" OR "compute.networks.patch")
+    AND resource.type="gce_network"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/network/changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "network_name"
+      description = "The Network"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.network_name)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "vpc_network_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "VPC Network Changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gce_network"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/network/changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+resource "google_logging_metric" "vpc_network_route_changes" {
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  name        = "vpc-network-route-changes"
+  project     = module.log-export-project.project_id
+  description = "Metric for tracking VPC Network Route Changes"
+  filter      = <<-FILTER
+    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    AND protoPayload.methodName=("compute.routes.insert" OR "compute.routes.delete")
+    AND resource.type="gce_route"
+    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
+  FILTER
+  metric_descriptor {
+    launch_stage = "BETA"
+    name         = "metric.googleapis.com/logging/network/route-changes"
+    type         = "GAUGE"
+    unit         = "1"
+    labels {
+      key         = "route_name"
+      description = "The Route"
+      value_type  = "STRING"
+    }
+  }
+  value_extractor = "EXTRACT(resource.labels.route)"
+  label_extractors = {
+    project_id = "EXTRACT(resource.labels.project_id)"
+  }
+}
+
+resource "google_monitoring_alert_policy" "vpc_network_route_changes" {
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
+  project                  = module.log-export-project.project_id
+  display_name             = "VPC Network Route Changes"
+  combiner                 = "OR"
+  enabled                  = true
+  notification_channels    = []
+  alert_strategy {
+    auto_close = "604800s"
+  }
+  conditions {
+    display_name = "Metric Absence"
+    condition_threshold {
+      filter                     = <<-FILTER
+          resource.type = "gce_route"
+          AND metric.type = "logging.googleapis.com/log_based_metrics"
+          AND metric.name = "metric.googleapis.com/logging/network/route-changes"
+      FILTER
+      duration                    = "300s"
+      comparison                  = "COMPARISON_GT"
+      threshold_value           = 0
+      trigger {
+        count = 1
+      }
+    }
+  }
+}
+
+
+variable "enable_logging_metric_and_alerts" {
+  description = "Enables logging metrics and alerts for the project"
+  type        = bool
+  default     = false
+}
+
+
+
+================================================
+File: output/output/output/output/fast/stages/0-bootstrap/variables.tf
+================================================
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+variable "essential_contacts" {
+  description = "Email used for essential contacts, unset if null."
+  type        = string
+  default     = "essential-contacts@example.com"
+}
+
+resource "google_project_service" "containeranalysis" {
   project                    = module.log-export-project.project_id
   service                    = "containeranalysis.googleapis.com"
   disable_on_destroy         = false
@@ -134,36 +641,8 @@ resource "google_project_service" "cloudasset" {
   disable_dependent_services = false
 }
 
-resource "google_logging_metric" "audit_config_changes" {
-  count       = var.enable_essential_contacts ? 1 : 0
-  name        = "audit-config-changes"
-  project     = module.log-export-project.project_id
-  description = "Metric for tracking Audit Configuration Changes"
-  filter      = <<-FILTER
-    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Factivity"
-    AND protoPayload.methodName:"SetIamPolicy"
-    AND protoPayload.serviceName="cloudresourcemanager.googleapis.com"
-    AND resource.type="project"
-    AND -protoPayload.authenticationInfo.principalEmail:"${module.automation-tf-bootstrap-sa.iam_email}"
-  FILTER
-  metric_descriptor {
-    launch_stage = "BETA"
-    name         = "metric.googleapis.com/logging/iam/audit-config-changes"
-    type         = "GAUGE"
-    unit         = "1"
-    labels {
-      key         = "project_id"
-      description = "The project"
-      value_type  = "STRING"
-    }
-  }
-  value_extractor = "EXTRACT(resource.labels.project_id)"
-  label_extractors = {
-    project_id = "EXTRACT(resource.labels.project_id)"
-  }
+variable "enable_logging_metric_and_alerts" {
+  description = "Enables logging metrics and alerts for the project"
+  type        = bool
+  default     = false
 }
-
-resource "google_monitoring_alert_policy" "audit_config_changes" {
-  count                  = var.enable_essential_contacts ? 1 : 0
-  project                = module.log-export-project.project_id
-  display_name           = "Audit configuration changes in project"
