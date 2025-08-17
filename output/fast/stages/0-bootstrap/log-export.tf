@@ -39,6 +39,7 @@ locals {
     module.log-export-logbucket
   )
   log_types = toset([for k, v in var.log_sinks : v.type])
+  enable_logging_metric_and_alerts = true
 }
 
 module "log-export-project" {
@@ -66,11 +67,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-    "containeranalysis.googleapis.com",
+		"containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
-    "cloudasset.googleapis.com",
+		"cloudasset.googleapis.com",
   ]
 }
 
@@ -160,7 +161,7 @@ resource "google_logging_metric" "audit_config_changes" {
       value_type  = "STRING"
     }
   }
-  value_extractor = "EXTRACT(resource.labels.project_id)"
+  value_extractor = "EXTRACT(protoPayload.serviceData.policyDelta.bindingDeltas[0].action)"
   label_extractors = {
     project_id = "EXTRACT(resource.labels.project_id)"
   }
@@ -236,7 +237,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
     display_name = "Metric Absence"
     condition_threshold {
       filter                     = <<-FILTER
-          resource.type = "gcp_project"
+          resource.type = "gcs_bucket"
           AND metric.type = "logging.googleapis.com/log_based_metrics"
           AND metric.name = "metric.googleapis.com/logging/storage/bucket-iam-changes"
       FILTER
@@ -251,7 +252,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
 }
 
 resource "google_logging_metric" "custom_role_changes" {
-  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  count       = local.enable_logging_metric_and_alerts ? 1 : 0
   name        = "custom-role-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Custom Role Changes"
@@ -307,7 +308,7 @@ resource "google_monitoring_alert_policy" "custom_role_changes" {
 }
 
 resource "google_logging_metric" "project_ownership_changes" {
-  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  count       = local.enable_logging_metric_and_alerts ? 1 : 0
   name        = "project-ownership-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Project Ownership Assignments/Changes"
@@ -361,25 +362,4 @@ resource "google_monitoring_alert_policy" "project_ownership_changes" {
       }
     }
   }
-}
-
-resource "google_project_service" "containeranalysis" {
-  project                    = module.log-export-project.project_id
-  service                    = "containeranalysis.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
-}
-
-resource "google_project_service" "containerscanning" {
-  project                    = module.log-export-project.project_id
-  service                    = "containerscanning.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
-}
-
-resource "google_project_service" "cloudasset" {
-  project                    = module.log-export-project.project_id
-  service                    = "cloudasset.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
 }
