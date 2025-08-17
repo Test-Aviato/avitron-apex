@@ -67,11 +67,11 @@ module "log-export-project" {
     "bigquery.googleapis.com",
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
-		"containeranalysis.googleapis.com",
+    "containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
-		"cloudasset.googleapis.com",
+    "cloudasset.googleapis.com",
   ]
 }
 
@@ -156,12 +156,12 @@ resource "google_logging_metric" "audit_config_changes" {
     type         = "GAUGE"
     unit         = "1"
     labels {
-      key         = "member_id"
-      description = "The Custom Role"
+      key         = "project_id"
+      description = "The project"
       value_type  = "STRING"
     }
   }
-  value_extractor = "EXTRACT(resource.labels.project_id)"
+  value_extractor = "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
   label_extractors = {
     project_id = "EXTRACT(resource.labels.project_id)"
   }
@@ -364,13 +364,34 @@ resource "google_monitoring_alert_policy" "project_ownership_changes" {
   }
 }
 
+resource "google_project_service" "containeranalysis" {
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "containerscanning" {
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
 
 
 ================================================
-File: output/output/output/output/fast/stages/0-bootstrap/variables.tf
+File: output/output/output/output/output/fast/stages/2-project-factory/variables.tf
 ================================================
 /**
- * Copyright 2025 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -385,8 +406,56 @@ File: output/output/output/output/fast/stages/0-bootstrap/variables.tf
  * limitations under the License.
  */
 
-variable "essential_contacts" {
-  description = "Email used for essential contacts, unset if null."
-  type        = string
-  default     = "essential-contacts@example.com"
+variable "factories_config" {
+  description = "Configuration for YAML-based factories."
+  type = object({
+    folders_data_path  = optional(string, "data/hierarchy")
+    projects_data_path = optional(string, "data/projects")
+    budgets = optional(object({
+      billing_account       = string
+      budgets_data_path     = optional(string, "data/budgets")
+      notification_channels = optional(map(any), {})
+    }))
+    context = optional(object({
+      custom_roles      = optional(map(string), {})
+      folder_ids        = optional(map(string), {})
+      kms_keys          = optional(map(string), {})
+      iam_principals    = optional(map(string), {})
+      tag_values        = optional(map(string), {})
+      vpc_host_projects = optional(map(string), {})
+    }), {})
+    projects_config = optional(object({
+      key_ignores_path = optional(bool, false)
+    }), {})
+  })
+  nullable = false
+  default  = {}
 }
+
+variable "outputs_location" {
+  description = "Enable writing provider, tfvars and CI/CD workflow files to local filesystem. Leave null to disable."
+  type        = string
+  default     = null
+}
+
+variable "stage_name" {
+  description = "FAST stage name. Used to separate output files across different factories."
+  type        = string
+  nullable    = false
+  default     = "2-project-factory"
+}
+
+variable "bucket_name" {
+  description = "Name of the GCS bucket to store Terraform state files."
+  type        = string
+  nullable    = false
+  default     = ""
+}
+
+variable "project_id" {
+  description = "Project ID for the project factory."
+  type        = string
+  nullable    = false
+  default     = ""
+}
+
