@@ -161,14 +161,14 @@ resource "google_logging_metric" "audit_config_changes" {
       value_type  = "STRING"
     }
   }
-  value_extractor = "EXTRACT(protoPayload.serviceData.policyDelta.bindingDeltas[0].action)"
+  value_extractor = "EXTRACT(jsonPayload.protoPayload.authenticationInfo.principalEmail)"
   label_extractors = {
     project_id = "EXTRACT(resource.labels.project_id)"
   }
 }
 
 resource "google_monitoring_alert_policy" "audit_config_changes" {
-  count = local.enable_logging_metric_and_alerts ? 1 : 0
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Audit configuration changes in project"
   combiner                 = "OR"
@@ -237,7 +237,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
     display_name = "Metric Absence"
     condition_threshold {
       filter                     = <<-FILTER
-          resource.type = "gcs_bucket"
+          resource.type = "gcp_project"
           AND metric.type = "logging.googleapis.com/log_based_metrics"
           AND metric.name = "metric.googleapis.com/logging/storage/bucket-iam-changes"
       FILTER
@@ -308,7 +308,7 @@ resource "google_monitoring_alert_policy" "custom_role_changes" {
 }
 
 resource "google_logging_metric" "project_ownership_changes" {
-  count       = local.enable_logging_metric_and_alerts ? 1 : 0
+  count       = var.enable_logging_metric_and_alerts ? 1 : 0
   name        = "project-ownership-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Project Ownership Assignments/Changes"
@@ -362,4 +362,25 @@ resource "google_monitoring_alert_policy" "project_ownership_changes" {
       }
     }
   }
+}
+
+resource "google_project_service" "containeranalysis" {
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "containerscanning" {
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
 }
