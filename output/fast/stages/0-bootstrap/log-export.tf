@@ -156,19 +156,19 @@ resource "google_logging_metric" "audit_config_changes" {
     type         = "GAUGE"
     unit         = "1"
     labels {
-      key         = "member_id"
-      description = "The Custom Role"
+      key         = "project_id"
+      description = "The project"
       value_type  = "STRING"
     }
   }
-  value_extractor = "EXTRACT(resource.labels.project_id)"
+  value_extractor = "EXTRACT(jsonPayload.protoPayload.authenticationInfo.principalEmail)"
   label_extractors = {
     project_id = "EXTRACT(resource.labels.project_id)"
   }
 }
 
 resource "google_monitoring_alert_policy" "audit_config_changes" {
-  count = local.enable_logging_metric_and_alerts ? 1 : 0
+  count = var.enable_logging_metric_and_alerts ? 1 : 0
   project                  = module.log-export-project.project_id
   display_name             = "Audit configuration changes in project"
   combiner                 = "OR"
@@ -237,7 +237,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
     display_name = "Metric Absence"
     condition_threshold {
       filter                     = <<-FILTER
-          resource.type = "gcs_bucket"
+          resource.type = "gcp_project"
           AND metric.type = "logging.googleapis.com/log_based_metrics"
           AND metric.name = "metric.googleapis.com/logging/storage/bucket-iam-changes"
       FILTER
@@ -252,7 +252,7 @@ resource "google_monitoring_alert_policy" "bucket_permission_changes" {
 }
 
 resource "google_logging_metric" "custom_role_changes" {
-  count       = var.enable_logging_metric_and_alerts ? 1 : 0
+  count       = local.enable_logging_metric_and_alerts ? 1 : 0
   name        = "custom-role-changes"
   project     = module.log-export-project.project_id
   description = "Metric for tracking Custom Role Changes"
@@ -364,29 +364,23 @@ resource "google_monitoring_alert_policy" "project_ownership_changes" {
   }
 }
 
+resource "google_project_service" "containeranalysis" {
+  project                    = module.log-export-project.project_id
+  service                    = "containeranalysis.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
 
+resource "google_project_service" "containerscanning" {
+  project                    = module.log-export-project.project_id
+  service                    = "containerscanning.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
 
-================================================
-File: output/output/output/output/fast/stages/0-bootstrap/variables.tf
-================================================
-/**
- * Copyright 2025 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-variable "essential_contacts" {
-  description = "Email used for essential contacts, unset if null."
-  type        = string
-  default     = "essential-contacts@example.com"
+resource "google_project_service" "cloudasset" {
+  project                    = module.log-export-project.project_id
+  service                    = "cloudasset.googleapis.com"
+  disable_on_destroy         = false
+  disable_dependent_services = false
 }

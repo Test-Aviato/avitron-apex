@@ -87,6 +87,11 @@ module "automation-project" {
       module.automation-tf-bootstrap-r-sa.iam_email,
       module.automation-tf-resman-r-sa.iam_email
     ]
+    
+    "roles/containeranalysis.notes.list" = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/containeranalysis.notes.get" = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/containeranalysis.occurrences.list" = [module.automation-tf-bootstrap-sa.iam_email]
+    "roles/containeranalysis.occurrences.get" = [module.automation-tf-bootstrap-sa.iam_email]
   }
   iam_bindings = {
     delegated_grants_resman = {

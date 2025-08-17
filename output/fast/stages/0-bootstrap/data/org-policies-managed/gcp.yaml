@@ -1,58 +1,23 @@
-resource "google_logging_metric" "metric_based_data_access_changes" {
-  count       = 1
-  name        = "gcp-data-access-changes"
-  project     = module.log-export-project.project_id
-  description = "Metric for tracking data access changes in GCS resources"
-  filter      = <<-FILTER
-    logName:"projects/${module.log-export-project.project_id}/logs/cloudaudit.googleapis.com%2Fdata_access"
-    AND protoPayload.authenticationInfo.principalEmail:("${var.org_policies_config.iac_policy_member_domains}")
-    AND (protoPayload.methodName:"storage.buckets.create" OR
-         protoPayload.methodName:"storage.objects.create" OR
-         protoPayload.methodName:"storage.objects.update" OR
-         protoPayload.methodName:"storage.objects.delete")
-    AND resource.type="gcs_bucket"
-  FILTER
-  metric_descriptor {
-    launch_stage = "BETA"
-    name         = "metric.googleapis.com/logging/data-access"
-    type         = "GAUGE"
-    unit         = "1"
-    labels {
-      key         = "bucket_name"
-      description = "The bucket"
-      value_type  = "STRING"
-    }
-  }
-  value_extractor = "EXTRACT(resource.labels.bucket_name)"
-  label_extractors = {
-    project_id = "EXTRACT(resource.labels.project_id)"
-  }
-}
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-resource "google_monitoring_alert_policy" "metric_based_data_access_changes" {
-  count     = 1
-  project                  = module.log-export-project.project_id
-  display_name             = "GCS data access changes in Project"
-  combiner                 = "OR"
-  enabled                  = true
-  notification_channels    = []
-  alert_strategy {
-    auto_close = "604800s"
-  }
-  conditions {
-    display_name = "Metric Absence"
-    condition_threshold {
-      filter                     = <<-FILTER
-          resource.type = "gcp_project"
-          AND metric.type = "logging.googleapis.com/log_based_metrics"
-          AND metric.name = "metric.googleapis.com/logging/data-access"
-      FILTER
-      duration                    = "300s"
-      comparison                  = "COMPARISON_GT"
-      threshold_value           = 0
-      trigger {
-        count = 1
-      }
-    }
-  }
-}
+# yaml-language-server: $schema=../../schemas/org-policies.schema.json
+
+gcp.resourceLocations:
+  rules:
+  - allow:
+      all: true
+#   - allow:
+#       values:
+#       - "in:europe-locations"
