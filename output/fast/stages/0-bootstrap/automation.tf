@@ -218,6 +218,11 @@ module "automation-project" {
       "cloudbuild.googleapis.com",
       "compute.googleapis.com",
       "container.googleapis.com",
+       # Enable containeranalysis and containerscanning APIs
+      "containeranalysis.googleapis.com",
+      "containerscanning.googleapis.com",
+      # Enable Cloud Asset API
+      "cloudasset.googleapis.com",
     ]
   )
   # Enable IAM data access logs to capture impersonation and service
