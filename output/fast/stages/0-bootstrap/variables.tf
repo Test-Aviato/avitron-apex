@@ -372,21 +372,4 @@ variable "workforce_identity_providers" {
 }
 
 variable "workload_identity_providers" {
-  description = "Workload Identity Federation pools. The `cicd_repositories` variable references keys here."
-  type = map(object({
-    attribute_condition = optional(string)
-    issuer              = string
-    custom_settings = optional(object({
-      issuer_uri = optional(string)
-      audiences  = optional(list(string), [])
-      jwks_json  = optional(string)
-    }), {})
-  }))
-  default  = {}
-  nullable = false
-  # TODO: fix validation
-  # validation {
-  #   condition     = var.federated_identity_providers.custom_settings == null
-  #   error_message = "Custom settings cannot be null."
-  # }
-}
+  description = "Workload Identity Federation pools. The `cicd_repositories` variable references
